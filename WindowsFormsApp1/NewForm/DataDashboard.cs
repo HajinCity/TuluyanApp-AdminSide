@@ -1,176 +1,234 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using System.Windows.Forms.DataVisualization.Charting;
 using Newtonsoft.Json.Linq;
 
 namespace WindowsFormsApp1.NewForm
 {
     public partial class DataDashboard : UserControl
     {
-        // Replace these with your actual Firebase project ID and Web API key
         private const string FirebaseProjectId = "tuluyan-user-login";
         private const string ApiKey = "AIzaSyDcGUMEFwKVWV29kD3yBCS4TGOnboaIKRg";
-
         private static readonly HttpClient client = new HttpClient();
+        private Timer refreshTimer;
 
         public DataDashboard()
         {
             InitializeComponent();
             DisplayDateAndTime();
-            _ = DisplayCounts(); // Trigger async method without awaiting in constructor
+            InitializeRefreshTimer();
+            _ = LoadDataCountsAsync();
+            _ = LoadOccupantDataAsync();
+        }
+
+        private void InitializeRefreshTimer()
+        {
+            refreshTimer = new Timer();
+            refreshTimer.Interval = 1000;
+            refreshTimer.Tick += async (sender, e) =>
+            {
+                DisplayDateAndTime();
+
+                if (DateTime.Now.Second == 0)
+                {
+                    await LoadDataCountsAsync();
+                    await LoadOccupantDataAsync();
+                }
+            };
+            refreshTimer.Start();
         }
 
         private void DisplayDateAndTime()
         {
             DateTime utcNow = DateTime.UtcNow;
-            DateTime philippinesDateTime = utcNow.AddHours(8);
-            label4.Text = philippinesDateTime.ToString("MMMM dd, yyyy");
-            label5.Text = philippinesDateTime.ToString("hh:mm:ss tt");
+            DateTime philippinesTime = utcNow.AddHours(8);
+            label4.Text = philippinesTime.ToString("MMMM dd, yyyy");
+            label5.Text = philippinesTime.ToString("hh:mm:ss tt");
         }
 
-        public async Task DisplayCounts()
+        private async Task LoadDataCountsAsync()
         {
             try
             {
-                // Get your data counts
-                int tenantApprovedCount = await GetApprovedCountFromCollection(
-                    "TenantCollection",
-                    "RentedBoardingHouse",
-                    "status",
-                    "Approved");
+                int tenantCount = await GetCollectionCount("TenantCollection");
+                int landlordCount = await GetCollectionCount("LandlordCollection");
 
-                int landlordApprovedCount = await GetLandlordApprovedCount();
-
-                // Clear existing points
-                chart1.Series["Series1"].Points.Clear();
-                chart1.Series["Series2"].Points.Clear();
-
-                // Add two points to each series to create the spline line
-                // Point 1: Starting at 0
-                chart1.Series["Series1"].Points.AddXY(0, 0);
-                chart1.Series["Series2"].Points.AddXY(0, 0);
-
-                // Point 2: Actual value
-                chart1.Series["Series1"].Points.AddXY(1, landlordApprovedCount);
-                chart1.Series["Series2"].Points.AddXY(1, tenantApprovedCount);
-
-                // Configure X-axis
-                chart1.ChartAreas[0].AxisX.Minimum = 0;
-                chart1.ChartAreas[0].AxisX.Maximum = 1;
-                chart1.ChartAreas[0].AxisX.Interval = 1;
-                chart1.ChartAreas[0].AxisX.MajorGrid.Enabled = false;
-
-                // Configure Y-axis
-                int maxCount = Math.Max(landlordApprovedCount, tenantApprovedCount);
-                chart1.ChartAreas[0].AxisY.Minimum = 0;
-                chart1.ChartAreas[0].AxisY.Maximum = maxCount + (maxCount > 0 ? 1 : 0);
-                chart1.ChartAreas[0].AxisY.Interval = 1;
-
-                // Refresh chart
-                chart1.Update();
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show("Error updating chart: " + ex.Message);
-            }
-        }
-
-
-        private async Task<int> GetApprovedCountFromCollection(string collection, string documentField, string statusField, string targetStatus)
-        {
-            int count = 0;
-            string url = $"https://firestore.googleapis.com/v1/projects/{FirebaseProjectId}/databases/(default)/documents/{collection}?key={ApiKey}";
-
-            try
-            {
-                var response = await client.GetStringAsync(url);
-                JObject json = JObject.Parse(response);
-
-                if (json["documents"] != null)
+                if (this.IsHandleCreated)
                 {
-                    foreach (var doc in json["documents"])
+                    this.Invoke((MethodInvoker)delegate
                     {
-                        // Check if this is a RentedBoardingHouse document
-                        if (doc["fields"]?["title"]?["stringValue"]?.ToString() == documentField)
-                        {
-                            string status = doc["fields"]?[statusField]?["stringValue"]?.ToString();
-                            if (status == targetStatus)
-                            {
-                                count++;
-                            }
-                        }
-                    }
+                        label8.Text = tenantCount.ToString();
+                        label9.Text = landlordCount.ToString();
+                    });
                 }
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error retrieving data from {collection}: " + ex.Message);
+                MessageBox.Show($"Error loading data counts: {ex.Message}");
             }
-
-            return count;
         }
 
-        private async Task<int> GetLandlordApprovedCount()
+        private async Task<int> GetCollectionCount(string collectionName)
         {
-            int totalApproved = 0;
-            string landlordCollectionUrl = $"https://firestore.googleapis.com/v1/projects/{FirebaseProjectId}/databases/(default)/documents/LandlordCollection?key={ApiKey}";
+            string url = $"https://firestore.googleapis.com/v1/projects/{FirebaseProjectId}/databases/(default)/documents/{collectionName}?key={ApiKey}";
+            HttpResponseMessage response = await client.GetAsync(url);
+            response.EnsureSuccessStatusCode();
 
+            string responseBody = await response.Content.ReadAsStringAsync();
+            var json = JObject.Parse(responseBody);
+
+            return json["documents"]?.Count() ?? 0;
+        }
+
+        private async Task LoadOccupantDataAsync()
+        {
             try
             {
-                var landlordResponse = await client.GetStringAsync(landlordCollectionUrl);
-                JObject landlordJson = JObject.Parse(landlordResponse);
-
-                if (landlordJson["documents"] != null)
+                if (this.IsHandleCreated)
                 {
-                    foreach (var landlordDoc in landlordJson["documents"])
+                    this.Invoke((MethodInvoker)delegate
                     {
-                        string docName = landlordDoc["name"]?.ToString();
-                        string[] segments = docName.Split('/');
-                        string landlordId = segments[segments.Length - 1];
+                        dataGridView1.Rows.Clear();
+                    });
+                }
 
-                        string boardingHousesUrl = $"https://firestore.googleapis.com/v1/projects/{FirebaseProjectId}/databases/(default)/documents/LandlordCollection/{landlordId}/BoardingHouses?key={ApiKey}";
+                var landlords = await GetCollectionData("LandlordCollection");
 
-                        var boardingHousesResponse = await client.GetStringAsync(boardingHousesUrl);
-                        JObject boardingHousesJson = JObject.Parse(boardingHousesResponse);
+                foreach (var landlord in landlords)
+                {
+                    if (!landlord.TryGetValue("__docId", out var landlordDocIdToken))
+                        continue;
 
-                        if (boardingHousesJson["documents"] != null)
+                    string landlordId = landlordDocIdToken.ToString();
+                    string landlordName = $"{landlord.GetValueOrDefaultSafe("FirstName")} {landlord.GetValueOrDefaultSafe("LastName")}".Trim();
+
+                    var boardingHouses = await GetSubCollectionData("LandlordCollection", landlordId, "BoardingHouses");
+
+                    foreach (var boardingHouse in boardingHouses)
+                    {
+                        if (!boardingHouse.TryGetValue("__docId", out var bhDocIdToken))
+                            continue;
+
+                        string address = boardingHouse.GetValueOrDefaultSafe("address", "No address");
+                        string boardinghouseId = bhDocIdToken.ToString();
+
+                        var occupants = await GetSubCollectionData($"LandlordCollection/{landlordId}/BoardingHouses", boardinghouseId, "Occupants");
+
+                        foreach (var occupant in occupants)
                         {
-                            foreach (var boardingHouseDoc in boardingHousesJson["documents"])
+                            try
                             {
-                                string boardingHouseName = boardingHouseDoc["name"]?.ToString();
-                                string[] bhSegments = boardingHouseName.Split('/');
-                                string boardingHouseId = bhSegments[bhSegments.Length - 1];
+                                string firstName = occupant.GetValueOrDefaultSafe("firstName");
+                                string lastName = occupant.GetValueOrDefaultSafe("lastName");
+                                string fullName = $"{firstName} {lastName}".Trim();
+                                string contactNo = occupant.GetValueOrDefaultSafe("contactNo");
+                                string status = occupant.GetValueOrDefaultSafe("status");
 
-                                string occupantsUrl = $"https://firestore.googleapis.com/v1/projects/{FirebaseProjectId}/databases/(default)/documents/LandlordCollection/{landlordId}/BoardingHouses/{boardingHouseId}/Occupants?key={ApiKey}";
+                                if (status != "Approved") continue;
 
-                                var occupantsResponse = await client.GetStringAsync(occupantsUrl);
-                                JObject occupantsJson = JObject.Parse(occupantsResponse);
-
-                                if (occupantsJson["documents"] != null)
+                                if (this.IsHandleCreated)
                                 {
-                                    foreach (var occupantDoc in occupantsJson["documents"])
+                                    this.Invoke((MethodInvoker)delegate
                                     {
-                                        string status = occupantDoc["fields"]?["status"]?["stringValue"]?.ToString();
-                                        if (status == "Approved")
-                                        {
-                                            totalApproved++;
-                                        }
-                                    }
+                                        int rowIndex = dataGridView1.Rows.Add();
+                                        dataGridView1.Rows[rowIndex].Cells["Column1"].Value = fullName;
+                                        dataGridView1.Rows[rowIndex].Cells["Column2"].Value = address;
+                                        dataGridView1.Rows[rowIndex].Cells["Column3"].Value = contactNo;
+                                        dataGridView1.Rows[rowIndex].Cells["Column4"].Value = landlordName;
+                                    });
                                 }
                             }
+                            catch (Exception innerEx)
+                            {
+                                Console.WriteLine($"Skipping occupant due to missing data: {innerEx.Message}");
+                            }
                         }
                     }
                 }
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Error retrieving landlord data: " + ex.Message);
+                MessageBox.Show($"Error loading nested occupant data: {ex.Message}");
             }
-
-            return totalApproved;
         }
 
+        private async Task<List<Dictionary<string, JToken>>> GetSubCollectionData(string parentPath, string documentId, string subCollection)
+        {
+            string url = $"https://firestore.googleapis.com/v1/projects/{FirebaseProjectId}/databases/(default)/documents/{parentPath}/{documentId}/{subCollection}?key={ApiKey}";
+
+            HttpResponseMessage response = await client.GetAsync(url);
+            response.EnsureSuccessStatusCode();
+
+            string responseBody = await response.Content.ReadAsStringAsync();
+            var json = JObject.Parse(responseBody);
+
+            var result = new List<Dictionary<string, JToken>>();
+
+            if (json["documents"] != null)
+            {
+                foreach (var doc in json["documents"])
+                {
+                    var fields = doc["fields"]?.ToObject<Dictionary<string, JToken>>() ?? new Dictionary<string, JToken>();
+                    string docName = doc["name"]?.ToString();
+                    string[] parts = docName?.Split('/');
+                    string docId = parts?.Last();
+                    fields["__docId"] = docId;
+
+                    result.Add(fields);
+                }
+            }
+
+            return result;
+        }
+
+        private async Task<List<Dictionary<string, JToken>>> GetCollectionData(string collectionName)
+        {
+            string url = $"https://firestore.googleapis.com/v1/projects/{FirebaseProjectId}/databases/(default)/documents/{collectionName}?key={ApiKey}";
+
+            HttpResponseMessage response = await client.GetAsync(url);
+            response.EnsureSuccessStatusCode();
+
+            string responseBody = await response.Content.ReadAsStringAsync();
+            var json = JObject.Parse(responseBody);
+
+            var result = new List<Dictionary<string, JToken>>();
+
+            if (json["documents"] != null)
+            {
+                foreach (var doc in json["documents"])
+                {
+                    var fields = doc["fields"]?.ToObject<Dictionary<string, JToken>>() ?? new Dictionary<string, JToken>();
+                    string docName = doc["name"]?.ToString();
+                    string[] parts = docName?.Split('/');
+                    string docId = parts?.Last();
+                    fields["__docId"] = docId;
+
+                    result.Add(fields);
+                }
+            }
+
+            return result;
+        }
+    }
+
+    public static class DictionaryExtensions
+    {
+        public static string GetValueOrDefaultSafe(this Dictionary<string, JToken> dict, string key, string fallback = "")
+        {
+            if (dict.TryGetValue(key, out JToken value))
+            {
+                if (value.Type == JTokenType.Object && value["stringValue"] != null)
+                {
+                    return value["stringValue"]?.ToString() ?? fallback;
+                }
+                return value?.ToString() ?? fallback;
+            }
+
+            Console.WriteLine($"Missing key: {key}");
+            return fallback;
+        }
     }
 }

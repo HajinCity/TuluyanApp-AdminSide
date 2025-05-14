@@ -67,5 +67,10 @@ namespace WindowsFormsApp1
         {
             openingForm(new HomeDashboard());
         }
+
+        private void management_btn_Click(object sender, EventArgs e)
+        {
+            openingForm(new Form2());
+        }
     }
 }

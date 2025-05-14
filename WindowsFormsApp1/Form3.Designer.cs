@@ -30,6 +30,8 @@
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form3));
             this.panel1 = new System.Windows.Forms.Panel();
+            this.management_btn = new System.Windows.Forms.Button();
+            this.logout_btn = new System.Windows.Forms.Button();
             this.pictureBox2 = new System.Windows.Forms.PictureBox();
             this.home_btn = new System.Windows.Forms.Button();
             this.label2 = new System.Windows.Forms.Label();
@@ -37,8 +39,6 @@
             this.pictureBox1 = new System.Windows.Forms.PictureBox();
             this.panel2 = new System.Windows.Forms.Panel();
             this.panel3 = new System.Windows.Forms.Panel();
-            this.logout_btn = new System.Windows.Forms.Button();
-            this.management_btn = new System.Windows.Forms.Button();
             this.panel1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox2)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
@@ -59,6 +59,40 @@
             this.panel1.Name = "panel1";
             this.panel1.Size = new System.Drawing.Size(292, 718);
             this.panel1.TabIndex = 0;
+            // 
+            // management_btn
+            // 
+            this.management_btn.FlatAppearance.BorderSize = 0;
+            this.management_btn.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.management_btn.Font = new System.Drawing.Font("Arial", 10F, System.Drawing.FontStyle.Bold);
+            this.management_btn.ForeColor = System.Drawing.Color.White;
+            this.management_btn.Image = ((System.Drawing.Image)(resources.GetObject("management_btn.Image")));
+            this.management_btn.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            this.management_btn.Location = new System.Drawing.Point(52, 331);
+            this.management_btn.Margin = new System.Windows.Forms.Padding(2);
+            this.management_btn.Name = "management_btn";
+            this.management_btn.Size = new System.Drawing.Size(176, 43);
+            this.management_btn.TabIndex = 12;
+            this.management_btn.Text = "         SYSTEM \r\n       MANAGEMENT";
+            this.management_btn.UseVisualStyleBackColor = true;
+            this.management_btn.Click += new System.EventHandler(this.management_btn_Click);
+            // 
+            // logout_btn
+            // 
+            this.logout_btn.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.logout_btn.FlatAppearance.BorderSize = 0;
+            this.logout_btn.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.logout_btn.Font = new System.Drawing.Font("Arial", 10F, System.Drawing.FontStyle.Bold);
+            this.logout_btn.ForeColor = System.Drawing.Color.White;
+            this.logout_btn.Image = ((System.Drawing.Image)(resources.GetObject("logout_btn.Image")));
+            this.logout_btn.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            this.logout_btn.Location = new System.Drawing.Point(52, 631);
+            this.logout_btn.Margin = new System.Windows.Forms.Padding(2);
+            this.logout_btn.Name = "logout_btn";
+            this.logout_btn.Size = new System.Drawing.Size(176, 38);
+            this.logout_btn.TabIndex = 11;
+            this.logout_btn.Text = "      LOGOUT";
+            this.logout_btn.UseVisualStyleBackColor = true;
             // 
             // pictureBox2
             // 
@@ -135,39 +169,6 @@
             this.panel3.Name = "panel3";
             this.panel3.Size = new System.Drawing.Size(583, 688);
             this.panel3.TabIndex = 2;
-            // 
-            // logout_btn
-            // 
-            this.logout_btn.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.logout_btn.FlatAppearance.BorderSize = 0;
-            this.logout_btn.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.logout_btn.Font = new System.Drawing.Font("Arial", 10F, System.Drawing.FontStyle.Bold);
-            this.logout_btn.ForeColor = System.Drawing.Color.White;
-            this.logout_btn.Image = ((System.Drawing.Image)(resources.GetObject("logout_btn.Image")));
-            this.logout_btn.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            this.logout_btn.Location = new System.Drawing.Point(52, 631);
-            this.logout_btn.Margin = new System.Windows.Forms.Padding(2);
-            this.logout_btn.Name = "logout_btn";
-            this.logout_btn.Size = new System.Drawing.Size(176, 38);
-            this.logout_btn.TabIndex = 11;
-            this.logout_btn.Text = "      LOGOUT";
-            this.logout_btn.UseVisualStyleBackColor = true;
-            // 
-            // management_btn
-            // 
-            this.management_btn.FlatAppearance.BorderSize = 0;
-            this.management_btn.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.management_btn.Font = new System.Drawing.Font("Arial", 10F, System.Drawing.FontStyle.Bold);
-            this.management_btn.ForeColor = System.Drawing.Color.White;
-            this.management_btn.Image = ((System.Drawing.Image)(resources.GetObject("management_btn.Image")));
-            this.management_btn.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            this.management_btn.Location = new System.Drawing.Point(52, 331);
-            this.management_btn.Margin = new System.Windows.Forms.Padding(2);
-            this.management_btn.Name = "management_btn";
-            this.management_btn.Size = new System.Drawing.Size(176, 43);
-            this.management_btn.TabIndex = 12;
-            this.management_btn.Text = "         SYSTEM \r\n       MANAGEMENT";
-            this.management_btn.UseVisualStyleBackColor = true;
             // 
             // Form3
             // 
