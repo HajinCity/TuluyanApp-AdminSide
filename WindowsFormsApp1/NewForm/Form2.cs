@@ -58,20 +58,25 @@ namespace WindowsFormsApp1
                         dynamic result = JsonConvert.DeserializeObject(responseString);
                         string uid = result.localId;
 
-                        // Save to Firestore
                         try
                         {
                             DocumentReference docRef = FirebaseInitialization.Database.Collection("users").Document(uid);
                             Dictionary<string, object> userData = new Dictionary<string, object>
-                    {
-                        { "email", email },
-                        { "name", name }, // Include name field
-                        { "role", "admin" },  // Assuming "admin" role here
-                        { "createdAt", Timestamp.GetCurrentTimestamp() }
-                    };
+                            {
+                                { "email", email },
+                                { "name", name },
+                                { "role", "admin" },
+                                { "createdAt", Timestamp.GetCurrentTimestamp() }
+                            };
 
                             await docRef.SetAsync(userData);
                             MessageBox.Show("Account created and saved to Firestore!");
+
+                            // Clear all textboxes after success
+                            textBox1.Clear();
+                            textBox2.Clear();
+                            textBox3.Clear();
+                            textBox4.Clear();
                         }
                         catch (Exception firestoreEx)
                         {
@@ -91,12 +96,6 @@ namespace WindowsFormsApp1
             }
         }
 
-
-        private void button2_Click(object sender, EventArgs e)
-        {
-            this.Hide(); // Hide the current Form2 (Create Account)
-            Form1 form1 = new Form1(); // Create a new instance of Form1
-            form1.Show(); // Show Form1
-        }
+      
     }
 }

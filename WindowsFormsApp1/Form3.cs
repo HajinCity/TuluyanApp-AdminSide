@@ -72,5 +72,18 @@ namespace WindowsFormsApp1
         {
             openingForm(new Form2());
         }
+
+        private void logout_btn_Click(object sender, EventArgs e)
+        {
+            // Optional: Confirm logout
+            var confirm = MessageBox.Show("Are you sure you want to log out?", "Logout", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+            if (confirm == DialogResult.Yes)
+            {
+                this.Hide(); // Hide the current Form3
+                Form1 loginForm = new Form1(); // Create a new instance of Form1
+                loginForm.Show(); // Show Form1 (login screen)
+            }
+        }
+
     }
 }

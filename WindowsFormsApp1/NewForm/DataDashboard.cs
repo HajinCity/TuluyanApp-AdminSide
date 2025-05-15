@@ -22,6 +22,9 @@ namespace WindowsFormsApp1.NewForm
             InitializeRefreshTimer();
             _ = LoadDataCountsAsync();
             _ = LoadOccupantDataAsync();
+
+            // Hook up the TextChanged event for filtering
+            textBox1.TextChanged += textBox1_TextChanged;
         }
 
         private void InitializeRefreshTimer()
@@ -211,6 +214,31 @@ namespace WindowsFormsApp1.NewForm
             }
 
             return result;
+        }
+
+        // 🔍 Filtering logic based on textbox1 input
+        private void textBox1_TextChanged(object sender, EventArgs e)
+        {
+            string filterText = textBox1.Text.Trim().ToLower();
+
+            foreach (DataGridViewRow row in dataGridView1.Rows)
+            {
+                if (row.IsNewRow) continue;
+
+                bool isVisible = false;
+
+                for (int i = 0; i < 4; i++) // assuming Columns 0 to 3 are: FullName, Address, Contact, Landlord
+                {
+                    var cellValue = row.Cells[i].Value?.ToString().ToLower() ?? "";
+                    if (cellValue.Contains(filterText))
+                    {
+                        isVisible = true;
+                        break;
+                    }
+                }
+
+                row.Visible = isVisible;
+            }
         }
     }
 
