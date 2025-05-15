@@ -1,6 +1,5 @@
 ﻿using Newtonsoft.Json;
 using System;
-using System.Collections.Generic;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
@@ -41,7 +40,10 @@ namespace WindowsFormsApp1
                     var content = new StringContent(json, Encoding.UTF8, "application/json");
 
                     var apiKey = "AIzaSyDcGUMEFwKVWV29kD3yBCS4TGOnboaIKRg";
-                    var response = await client.PostAsync($"https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key={apiKey}", content);
+                    var response = await client.PostAsync(
+                        $"https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key={apiKey}",
+                        content);
+
                     var responseString = await response.Content.ReadAsStringAsync();
 
                     if (response.IsSuccessStatusCode)
@@ -49,23 +51,21 @@ namespace WindowsFormsApp1
                         dynamic result = JsonConvert.DeserializeObject(responseString);
                         string uid = result.localId;
 
-                        // 🔍 Log the UID
-                        Console.WriteLine($"User UID: {uid}");
-
-                        // Check role in Firestore
-                        var userDoc = await FirebaseInitialization.Database.Collection("users").Document(uid).GetSnapshotAsync();
+                        var userDoc = await FirebaseInitialization.Database
+                            .Collection("users")
+                            .Document(uid)
+                            .GetSnapshotAsync();
 
                         if (userDoc.Exists)
                         {
                             if (userDoc.TryGetValue("role", out string role))
                             {
-                                // Check if the role is 'admin'
                                 if (role == "admin")
                                 {
                                     MessageBox.Show("Login successful!");
-                                    Form3 form3 = new Form3();
+                                    Form3 form3 = new Form3(uid); // ✅ Pass UID
                                     form3.Show();
-                                    this.Close();
+                                    this.Hide();
                                 }
                                 else
                                 {
