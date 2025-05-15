@@ -1,10 +1,10 @@
 ﻿using Newtonsoft.Json;
 using System;
-using System.Collections.Generic;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using Google.Cloud.Firestore;
 
 namespace WindowsFormsApp1
 {
@@ -40,32 +40,36 @@ namespace WindowsFormsApp1
                     var json = JsonConvert.SerializeObject(payload);
                     var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-                    var apiKey = "AIzaSyDcGUMEFwKVWV29kD3yBCS4TGOnboaIKRg";
-                    var response = await client.PostAsync($"https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key={apiKey}", content);
+                    var apiKey = "AIzaSyDcGUMEFwKVWV29kD3yBCS4TGOnboaIKRg"; // Replace with your real Firebase Web API key
+                    var response = await client.PostAsync(
+                        $"https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key={apiKey}",
+                        content);
+
                     var responseString = await response.Content.ReadAsStringAsync();
 
                     if (response.IsSuccessStatusCode)
                     {
                         dynamic result = JsonConvert.DeserializeObject(responseString);
                         string uid = result.localId;
+                        string idToken = result.idToken;
 
-                        // 🔍 Log the UID
-                        Console.WriteLine($"User UID: {uid}");
-
-                        // Check role in Firestore
-                        var userDoc = await FirebaseInitialization.Database.Collection("users").Document(uid).GetSnapshotAsync();
+                        var userDoc = await FirebaseInitialization.Database
+                            .Collection("users")
+                            .Document(uid)
+                            .GetSnapshotAsync();
 
                         if (userDoc.Exists)
                         {
                             if (userDoc.TryGetValue("role", out string role))
                             {
-                                // Check if the role is 'admin'
                                 if (role == "admin")
                                 {
                                     MessageBox.Show("Login successful!");
-                                    Form3 form3 = new Form3();
+
+                                    // Pass the email and uid to Form3
+                                    Form3 form3 = new Form3(email, uid); // Pass email and uid
                                     form3.Show();
-                                    this.Close();
+                                    this.Hide();
                                 }
                                 else
                                 {
@@ -85,7 +89,8 @@ namespace WindowsFormsApp1
                     else
                     {
                         dynamic error = JsonConvert.DeserializeObject(responseString);
-                        MessageBox.Show($"Login failed: {error.error.message}");
+                        string errorMessage = error?.error?.message ?? "Unknown error occurred during login.";
+                        MessageBox.Show($"Login failed: {errorMessage}");
                     }
                 }
             }
