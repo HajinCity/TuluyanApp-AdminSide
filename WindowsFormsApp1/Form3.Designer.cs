@@ -93,6 +93,7 @@
             this.logout_btn.TabIndex = 11;
             this.logout_btn.Text = "      LOGOUT";
             this.logout_btn.UseVisualStyleBackColor = true;
+            this.logout_btn.Click += new System.EventHandler(this.logout_btn_Click);
             // 
             // pictureBox2
             // 

@@ -157,6 +157,12 @@
     <Compile Include="Form1.Designer.cs">
       <DependentUpon>Form1.cs</DependentUpon>
     </Compile>
+    <Compile Include="NewForm\changepass.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="NewForm\changepass.Designer.cs">
+      <DependentUpon>changepass.cs</DependentUpon>
+    </Compile>
     <Compile Include="NewForm\Form2.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -185,6 +191,9 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <EmbeddedResource Include="Form1.resx">
       <DependentUpon>Form1.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="NewForm\changepass.resx">
+      <DependentUpon>changepass.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="NewForm\Form2.resx">
       <DependentUpon>Form2.cs</DependentUpon>
@@ -278,7 +287,9 @@
   <ItemGroup>
     <None Include="App.config" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <None Include="Resources\Close.png" />
+  </ItemGroup>
   <ItemGroup>
     <None Include="Resources\rect6.png" />
   </ItemGroup>
